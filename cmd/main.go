@@ -1,10 +1,12 @@
 package main
 
 import (
-	"log"
 	"develop/config"
 	"develop/controller"
 	"develop/storage/postgres"
+	"fmt"
+	"log"
+	"net/http"
 )
 
 func main()  {
@@ -18,10 +20,18 @@ func main()  {
 	defer store.DB.Close()
 
 	 con := controller.New(store)
+	http.HandleFunc("/user", con.User)
+	http.HandleFunc("/product", con.Product)
+	http.HandleFunc("/order", con.Order)
+	http.HandleFunc("/order_product", con.OrderProduct)
+
+
+	fmt.Println("listening at port :8080")
+	http.ListenAndServe(":8080", nil)
 
 	// USERS
 
-	 con.CreateUser()
+	//con.CreateUser()
 	//  con.GetUserByID()
 	//  con.GetUserList()
 	//  con.UpdateUser()

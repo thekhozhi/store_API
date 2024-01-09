@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"database/sql"
-	"fmt"
 	"develop/models"
 
 	"github.com/google/uuid"
@@ -31,7 +30,7 @@ func (u userRepo) Insert(user models.User)  (string, error) {
 func (u userRepo) GetByID(id uuid.UUID) (models.User, error){
 user := models.User{}
 
-	err := u.DB.QueryRow(`SELECT from users where id = $1`, id).Scan(
+	err := u.DB.QueryRow(`SELECT id, first_name, last_name, email, phone from users where id = $1`, id).Scan(
 		&user.ID,
 		&user.FirstName,
 		&user.LastName,
@@ -39,7 +38,6 @@ user := models.User{}
 		&user.Phone,
 	)
 	if err != nil{
-		fmt.Println("Error while selecting user by id!", err.Error())
 		return models.User{}, err
 	}
 	return user, nil

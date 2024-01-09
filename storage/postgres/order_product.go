@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"database/sql"
-	"fmt"
 	"develop/models"
 
 	"github.com/google/uuid"
@@ -21,7 +20,7 @@ func NewOrderProductRepo(db *sql.DB) orderProductRepo{
 func (op orderProductRepo) Insert(orderProduct models.OrderProduct)  (string, error) {
 	id := uuid.New()
 
-	_, err := op.DB.Exec(`INSERT INTO order_products values ($1, $2, $3)`, id, orderProduct.Quantity, orderProduct.Price)
+	_, err := op.DB.Exec(`INSERT INTO order_products (id, quantity, price) values ($1, $2, $3)`, id, orderProduct.Quantity, orderProduct.Price)
 	if err != nil{
 		return "", err
 	}
@@ -34,7 +33,6 @@ orderProduct := models.OrderProduct{}
 	err := op.DB.QueryRow(`SELECT from order_products where id = $1`, id).Scan(
 		 &orderProduct.ID, &orderProduct.OrderId, &orderProduct.ProductID, &orderProduct.Quantity, &orderProduct.Price)
 	if err != nil{
-		fmt.Println("Error while selecting order_products by id!", err.Error())
 		return models.OrderProduct{}, err
 	}
 	return orderProduct, nil

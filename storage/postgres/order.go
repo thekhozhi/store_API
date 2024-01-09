@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"database/sql"
-	"fmt"
 	"develop/models"
 
 	"github.com/google/uuid"
@@ -34,7 +33,6 @@ order := models.Order{}
 	err := o.DB.QueryRow(`SELECT from orders where id = $1`, id).Scan(
 		 &order.ID, &order.Amount, &order.UserId, &order.CreatedAt,)
 	if err != nil{
-		fmt.Println("Error while selecting order by id!", err.Error())
 		return models.Order{}, err
 	}
 	return order, nil

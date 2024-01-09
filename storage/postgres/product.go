@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"database/sql"
-	"fmt"
 	"develop/models"
 
 	"github.com/google/uuid"
@@ -32,11 +31,10 @@ func (p productRepo) Insert(product models.Product)  (string, error) {
 func (p productRepo) GetByID(id uuid.UUID) (models.Product, error){
 product := models.Product{}
 
-	err := p.DB.QueryRow(`SELECT from products where id = $1`, id).Scan(
+	err := p.DB.QueryRow(`SELECT id, name, price from products where id = $1`, id).Scan(
 		 &product.ID, &product.Name, &product.Price,
 	)
 	if err != nil{
-		fmt.Println("Error while selecting product by id!", err.Error())
 		return models.Product{}, err
 	}
 	return product, nil

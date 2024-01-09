@@ -1,62 +1,102 @@
 package controller
 
 import (
-	"fmt"
 	"develop/models"
+	"encoding/json"
+	"fmt"
+	"net/http"
+
 	"github.com/google/uuid"
 )
 
-func (c Controller) CreateOrder(){
-order := getOrderInfo()
-id, err := c.Store.OrderStorage.Insert(order)
-if err != nil{
-	fmt.Println("Error while Inserting order!", err.Error())
-}
-fmt.Println("order's id is:", id)
+func (c Controller) Order(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPost:
+		c.CreateOrder(w, r)
+	case http.MethodGet:
+		values := r.URL.Query()
+		_, ok := values["id"]
+		if ok {
+			c.GetOrderByID(w, r)
+		} else {
+			c.GetOrderList(w, r)
+		}
+	case http.MethodPut:
+		c.UpdateOrder(w, r)
+	case http.MethodDelete:
+		// delete
+	}
 }
 
-func (c Controller) GetOrderByID()  {
-	idStr := ""
-	fmt.Print("Enter id: ")
-	fmt.Scan(&idStr)
-
-	id, err := uuid.Parse(idStr)
-	if err != nil{
-		fmt.Print("Id is not uuid error: ", err.Error())
+func (c Controller) CreateOrder(w http.ResponseWriter, r *http.Request){
+	order := getOrderInfo()
+	if err := json.NewDecoder(r.Body).Decode(&order); err != nil {
+		fmt.Println("error while reading data from client", err.Error())
+		hanldeResponse(w, http.StatusBadRequest, err)
 		return
 	}
 
-	order, err := c.Store.OrderStorage.GetByID(id)
+	id, err := c.Store.OrderStorage.Insert(order)
+if err != nil{
+	fmt.Println("Error while inserting order inside controller err: ", err.Error())
+	hanldeResponse(w, http.StatusInternalServerError, err)
+	return
+}
+
+
+resp, err := c.Store.OrderStorage.GetByID(uuid.MustParse(id))
+if err != nil{
+	fmt.Println("Error while inserting order inside controller err: ", err.Error())
+	hanldeResponse(w, http.StatusInternalServerError, err)
+}
+
+hanldeResponse(w, http.StatusOK, resp)
+}
+
+func (c Controller) GetOrderByID(w http.ResponseWriter, r *http.Request)  {
+	values := r.URL.Query()
+	id := values["id"][0]
+
+
+	order, err := c.Store.OrderStorage.GetByID(uuid.MustParse(id))
 	if err != nil{
 		fmt.Println("Error while getting order by id! :",err.Error())
+		hanldeResponse(w, http.StatusInternalServerError, err)
 		return
 	}
-	fmt.Println("the product is:", order)
+	hanldeResponse(w, http.StatusOK, order)
 }
 
-func (c Controller) GetOrderList(){
+func (c Controller) GetOrderList(w http.ResponseWriter, r *http.Request){
 	orders, err := c.Store.OrderStorage.GetList()
 	if err != nil{
 		fmt.Println("Error while getting list: ", err.Error())
+		hanldeResponse(w, http.StatusInternalServerError, err)
 		return
 	}
-	fmt.Println(orders)
+	hanldeResponse(w, http.StatusOK, orders)
 }
 
-func (c Controller) UpdateOrder (){
+
+
+func (c Controller) UpdateOrder (w http.ResponseWriter, r *http.Request){
 	order := getOrderInfo()
 
 	err := c.Store.OrderStorage.Update(order)
 	if err != nil{
-		fmt.Println("Error while updating order: ", err.Error())
+		fmt.Println("Error while updating orders: ", err.Error())
+		hanldeResponse(w, http.StatusInternalServerError, err)
 		return
 	}
 	if order.ID.String() != ""{
 		fmt.Println("Successfully updated!")
+		hanldeResponse(w, http.StatusOK, order)
 	}else{
 		fmt.Println("Successfullu created!")
+		hanldeResponse(w, http.StatusOK, order)
 	}
 }
+
 
 
 

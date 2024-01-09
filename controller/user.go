@@ -1,60 +1,97 @@
 package controller
 
 import (
-	"fmt"
 	"develop/models"
+	"encoding/json"
+	"fmt"
+	"net/http"
+
 	"github.com/google/uuid"
 )
 
-func (c Controller) CreateUser(){
+func (c Controller) User(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPost:
+		c.CreateUser(w, r)
+	case http.MethodGet:
+		values := r.URL.Query()
+		_, ok := values["id"]
+		if ok {
+			c.GetUserByID(w, r)
+		} else {
+			c.GetUserList(w, r)
+		}
+	case http.MethodPut:
+		c.UpdateUser(w, r)
+	case http.MethodDelete:
+		// delete
+	}
+}
+
+func (c Controller) CreateUser(w http.ResponseWriter, r *http.Request){
 user := getUserInfo()
+if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+	fmt.Println("error while reading data from client", err.Error())
+	hanldeResponse(w, http.StatusBadRequest, err)
+	return
+}
+
 id, err := c.Store.UserStorage.Insert(user)
 if err != nil{
-	fmt.Println("Error while Inserting user!", err.Error())
+	fmt.Println("Error while inserting user inside contrller err: ", err.Error())
+	hanldeResponse(w, http.StatusInternalServerError, err)
+	return
 }
-fmt.Println("user's id is:", id)
+
+
+resp, err := c.Store.UserStorage.GetByID(uuid.MustParse(id))
+if err != nil{
+	fmt.Println("Error while inserting user inside controller err: ", err.Error())
+	hanldeResponse(w, http.StatusInternalServerError, err)
 }
 
-func (c Controller) GetUserByID()  {
-	idStr := ""
-	fmt.Print("Enter id: ")
-	fmt.Scan(&idStr)
+hanldeResponse(w, http.StatusOK, resp)
+}
 
-	id, err := uuid.Parse(idStr)
-	if err != nil{
-		fmt.Print("Id is not uuid error: ", err.Error())
-		return
-	}
+func (c Controller) GetUserByID(w http.ResponseWriter, r *http.Request)  {
+	values := r.URL.Query()
+	id := values["id"][0]
 
-	user, err := c.Store.UserStorage.GetByID(id)
+
+	user, err := c.Store.UserStorage.GetByID(uuid.MustParse(id))
 	if err != nil{
 		fmt.Println("Error while getting user by id! :",err.Error())
+		hanldeResponse(w, http.StatusInternalServerError, err)
 		return
 	}
-	fmt.Println("the user is:", user)
+	hanldeResponse(w, http.StatusOK, user)
 }
 
-func (c Controller) GetUserList(){
+func (c Controller) GetUserList(w http.ResponseWriter, r *http.Request){
 	users, err := c.Store.UserStorage.GetList()
 	if err != nil{
 		fmt.Println("Error while getting list: ", err.Error())
+		hanldeResponse(w, http.StatusInternalServerError, err)
 		return
 	}
-	fmt.Println(users)
+	hanldeResponse(w, http.StatusOK, users)
 }
 
-func (c Controller) UpdateUser (){
+func (c Controller) UpdateUser (w http.ResponseWriter, r *http.Request){
 	user := getUserInfo()
 
 	err := c.Store.UserStorage.Update(user)
 	if err != nil{
 		fmt.Println("Error while updating user: ", err.Error())
+		hanldeResponse(w, http.StatusInternalServerError, err)
 		return
 	}
 	if user.ID.String() != ""{
 		fmt.Println("Successfully updated!")
+		hanldeResponse(w, http.StatusOK, user)
 	}else{
 		fmt.Println("Successfullu created!")
+		hanldeResponse(w, http.StatusOK, user)
 	}
 }
 
