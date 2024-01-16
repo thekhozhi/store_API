@@ -27,7 +27,7 @@ func (o orderRepo) Insert(order models.Order)  (string, error) {
 	return id.String(), nil
 }
 
-func (o orderRepo) GetByID(id uuid.UUID) (models.Order, error){
+func (o orderRepo) GetByID(id string) (models.Order, error){
 order := models.Order{}
 
 	err := o.DB.QueryRow(`SELECT from orders where id = $1`, id).Scan(
@@ -64,6 +64,13 @@ func (o orderRepo) Update(order models.Order) error {
 	return nil
 }
 
-
+func (o orderRepo) Delete(id string)error {
+	id =  "1"
+	_, err := o.DB.Exec(`DELETE from orders where id = $1`, id)
+	if err != nil{
+		return err
+	}
+	return nil
+}
 
 

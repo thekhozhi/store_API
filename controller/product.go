@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"github.com/google/uuid"
 )
 
 func (c Controller) Product(w http.ResponseWriter, r *http.Request) {
@@ -24,7 +22,7 @@ func (c Controller) Product(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPut:
 		c.UpdateProduct(w, r)
 	case http.MethodDelete:
-		// delete
+		c.DeleteProduct(w, r)
 	}
 }
 
@@ -36,7 +34,7 @@ func (c Controller) CreateProduct(w http.ResponseWriter, r *http.Request){
 		return
 	}
 	
-	id, err := c.Store.ProductStorage.Insert(product)
+	product, err := c.Store.Product().Create(product)
 	if err != nil{
 		fmt.Println("Error while inserting product inside contrller err: ", err.Error())
 		hanldeResponse(w, http.StatusInternalServerError, err)
@@ -44,7 +42,7 @@ func (c Controller) CreateProduct(w http.ResponseWriter, r *http.Request){
 	}
 	
 	
-	resp, err := c.Store.ProductStorage.GetByID(uuid.MustParse(id))
+	resp, err := c.Store.Product().GetByID(product.ID)
 	if err != nil{
 		fmt.Println("Error while inserting product inside controller err: ", err.Error())
 		hanldeResponse(w, http.StatusInternalServerError, err)
@@ -57,7 +55,7 @@ func (c Controller) GetProductByID(w http.ResponseWriter, r *http.Request)  {
 	id := values["id"][0]
 
 
-	product, err := c.Store.ProductStorage.GetByID(uuid.MustParse(id))
+	product, err := c.Store.Product().GetByID(id)
 	if err != nil{
 		fmt.Println("Error while getting product by id! :",err.Error())
 		hanldeResponse(w, http.StatusInternalServerError, err)
@@ -67,7 +65,7 @@ func (c Controller) GetProductByID(w http.ResponseWriter, r *http.Request)  {
 }
 
 func (c Controller) GetProductList(w http.ResponseWriter, r *http.Request){
-	products, err := c.Store.ProductStorage.GetList()
+	products, err := c.Store.Product().GetList(models.Product{})
 	if err != nil{
 		fmt.Println("Error while getting list: ", err.Error())
 		hanldeResponse(w, http.StatusInternalServerError, err)
@@ -79,13 +77,13 @@ func (c Controller) GetProductList(w http.ResponseWriter, r *http.Request){
 func (c Controller) UpdateProduct (w http.ResponseWriter, r *http.Request){
 	product := getProductInfo()
 
-	err := c.Store.ProductStorage.Update(product)
+	product,err := c.Store.Product().Update(product)
 	if err != nil{
 		fmt.Println("Error while updating product: ", err.Error())
 		hanldeResponse(w, http.StatusInternalServerError, err)
 		return
 	}
-	if product.ID.String() != ""{
+	if product.ID != ""{
 		fmt.Println("Successfully updated!")
 		hanldeResponse(w, http.StatusOK, product)
 	}else{
@@ -94,6 +92,14 @@ func (c Controller) UpdateProduct (w http.ResponseWriter, r *http.Request){
 	}
 }
 
+func (c Controller) DeleteProduct(w http.ResponseWriter, r *http.Request){
+	id := "bd5e0a1c-c37b-405a-8ec8-3430746c86a3"
+	err := c.Store.Product().Delete(id)
+	if err != nil{
+		fmt.Println("Error while deleting user!")
+		return
+	}
+}
 
 
 func getProductInfo() models.Product{
@@ -132,7 +138,7 @@ func getProductInfo() models.Product{
 		}
 		if idStr != ""{
 			return models.Product{
-				ID:		   uuid.MustParse(idStr),
+				ID:		   idStr,
 				Name: 	   name,
 				Price: 	   price,	
 			}

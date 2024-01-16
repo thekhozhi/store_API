@@ -8,10 +8,10 @@ import (
 )
 
 type Controller struct {
-	Store postgres.Store
+	Store postgres.IStorage
 }
 
-func New(store postgres.Store) Controller {
+func New(store postgres.IStorage) Controller {
 	return Controller{
 		Store: store,
 	}

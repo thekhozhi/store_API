@@ -27,7 +27,7 @@ func (op orderProductRepo) Insert(orderProduct models.OrderProduct)  (string, er
 	return id.String(), nil
 }
 
-func (op orderProductRepo) GetByID(id uuid.UUID) (models.OrderProduct, error){
+func (op orderProductRepo) GetByID(id string) (models.OrderProduct, error){
 orderProduct := models.OrderProduct{}
 
 	err := op.DB.QueryRow(`SELECT from order_products where id = $1`, id).Scan(
@@ -65,5 +65,12 @@ func (op orderProductRepo) Update(orderProduct models.OrderProduct) error {
 }
 
 
-
+func (op orderProductRepo) Delete(id string)error {
+	id =  "c180dc8b-c59a-44b0-a0f3-3d57a981ef3c"
+	_, err := op.DB.Exec(`DELETE from orders_products where id = $1`, id)
+	if err != nil{
+		return err
+	}
+	return nil
+}
 

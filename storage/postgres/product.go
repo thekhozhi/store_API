@@ -28,7 +28,7 @@ func (p productRepo) Insert(product models.Product)  (string, error) {
 	return id.String(), nil
 }
 
-func (p productRepo) GetByID(id uuid.UUID) (models.Product, error){
+func (p productRepo) GetByID(id string) (models.Product, error){
 product := models.Product{}
 
 	err := p.DB.QueryRow(`SELECT id, name, price from products where id = $1`, id).Scan(
@@ -60,6 +60,15 @@ func (p productRepo) GetList() ([]models.Product, error) {
 
 func (p productRepo) Update(product models.Product) error {
 	_, err := p.DB.Exec(`UPDATE products set name = $1,  price = $2, where id = $3`,product.Name, product.Price, product.ID)
+	if err != nil{
+		return err
+	}
+	return nil
+}
+
+func (p productRepo) Delete(id string)error {
+	id =  "bd5e0a1c-c37b-405a-8ec8-3430746c86a3"
+	_, err := p.DB.Exec(`DELETE from products where id = $1`, id)
 	if err != nil{
 		return err
 	}

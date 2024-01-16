@@ -1,9 +1,7 @@
 package models
 
-import "github.com/google/uuid"
-
 type Product struct {
-	ID 	  uuid.UUID
+	ID 	  string
 	Name  string
 	Price int
 }

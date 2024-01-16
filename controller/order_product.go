@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"github.com/google/uuid"
 )
 
 func (c Controller) OrderProduct(w http.ResponseWriter, r *http.Request) {
@@ -24,7 +22,7 @@ func (c Controller) OrderProduct(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPut:
 		c.UpdateOrderProduct(w, r)
 	case http.MethodDelete:
-		// delete
+		c.DeleteOrderProducts(w, r)
 	}
 }
 
@@ -36,7 +34,7 @@ func (c Controller) CreateOrderProduct(w http.ResponseWriter, r *http.Request){
 		return
 	}
 	
-	id, err := c.Store.OrderProductStorage.Insert(orderProduct)
+	orderProduct, err := c.Store.OrderProduct().Create(orderProduct)
 	if err != nil{
 		fmt.Println("Error while inserting order product inside contrller err: ", err.Error())
 		hanldeResponse(w, http.StatusInternalServerError, err)
@@ -44,7 +42,7 @@ func (c Controller) CreateOrderProduct(w http.ResponseWriter, r *http.Request){
 	}
 	
 	
-	resp, err := c.Store.OrderProductStorage.GetByID(uuid.MustParse(id))
+	resp, err := c.Store.OrderProduct().GetByID(orderProduct.ID)
 	if err != nil{
 		fmt.Println("Error while inserting order product inside controller err: ", err.Error())
 		hanldeResponse(w, http.StatusInternalServerError, err)
@@ -59,7 +57,7 @@ func (c Controller) GetOrderProductByID(w http.ResponseWriter, r *http.Request) 
 	id := values["id"][0]
 
 
-	orderProduct, err := c.Store.OrderProductStorage.GetByID(uuid.MustParse(id))
+	orderProduct, err := c.Store.OrderProduct().GetByID(id)
 	if err != nil{
 		fmt.Println("Error while getting order product by id! :",err.Error())
 		hanldeResponse(w, http.StatusInternalServerError, err)
@@ -69,7 +67,7 @@ func (c Controller) GetOrderProductByID(w http.ResponseWriter, r *http.Request) 
 }
 
 func (c Controller) GetOrderProductList(w http.ResponseWriter, r *http.Request){
-	orderProducts, err := c.Store.OrderProductStorage.GetList()
+	orderProducts, err := c.Store.OrderProduct().GetList(models.OrderProduct{})
 	if err != nil{
 		fmt.Println("Error while getting list: ", err.Error())
 		hanldeResponse(w, http.StatusInternalServerError, err)
@@ -82,13 +80,13 @@ func (c Controller) GetOrderProductList(w http.ResponseWriter, r *http.Request){
 func (c Controller) UpdateOrderProduct (w http.ResponseWriter, r *http.Request){
 	orderProduct := getOrderProductInfo()
 
-	err := c.Store.OrderProductStorage.Update(orderProduct)
+	orderProduct, err := c.Store.OrderProduct().Update(orderProduct)
 	if err != nil{
 		fmt.Println("Error while updating order products: ", err.Error())
 		hanldeResponse(w, http.StatusInternalServerError, err)
 		return
 	}
-	if orderProduct.ID.String() != ""{
+	if orderProduct.ID != ""{
 		fmt.Println("Successfully updated!")
 		hanldeResponse(w, http.StatusOK, orderProduct)
 	}else{
@@ -97,6 +95,14 @@ func (c Controller) UpdateOrderProduct (w http.ResponseWriter, r *http.Request){
 	}
 }
 
+func (c Controller) DeleteOrderProducts(w http.ResponseWriter, r *http.Request){
+	id := "c180dc8b-c59a-44b0-a0f3-3d57a981ef3c"
+	err := c.Store.OrderProduct().Delete(id)
+	if err != nil{
+		fmt.Println("Error while deleting order products!")
+		return
+	}
+}
 
 
 
@@ -136,7 +142,7 @@ func getOrderProductInfo() models.OrderProduct{
 		}
 		if idStr != ""{
 			return models.OrderProduct{
-				 ID: uuid.MustParse(idStr),
+				 ID:  idStr,
 				 Quantity: quantity,
 				 Price: price,
 			}

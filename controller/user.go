@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"github.com/google/uuid"
 )
 
 func (c Controller) User(w http.ResponseWriter, r *http.Request) {
@@ -24,7 +22,7 @@ func (c Controller) User(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPut:
 		c.UpdateUser(w, r)
 	case http.MethodDelete:
-		// delete
+		c.DeleteUser(w, r)
 	}
 }
 
@@ -36,7 +34,7 @@ if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 	return
 }
 
-id, err := c.Store.UserStorage.Insert(user)
+user, err := c.Store.User().Create(user)
 if err != nil{
 	fmt.Println("Error while inserting user inside contrller err: ", err.Error())
 	hanldeResponse(w, http.StatusInternalServerError, err)
@@ -44,7 +42,7 @@ if err != nil{
 }
 
 
-resp, err := c.Store.UserStorage.GetByID(uuid.MustParse(id))
+resp, err := c.Store.User().GetByID(user.ID)
 if err != nil{
 	fmt.Println("Error while inserting user inside controller err: ", err.Error())
 	hanldeResponse(w, http.StatusInternalServerError, err)
@@ -58,7 +56,7 @@ func (c Controller) GetUserByID(w http.ResponseWriter, r *http.Request)  {
 	id := values["id"][0]
 
 
-	user, err := c.Store.UserStorage.GetByID(uuid.MustParse(id))
+	user, err := c.Store.User().GetByID(id)
 	if err != nil{
 		fmt.Println("Error while getting user by id! :",err.Error())
 		hanldeResponse(w, http.StatusInternalServerError, err)
@@ -68,7 +66,7 @@ func (c Controller) GetUserByID(w http.ResponseWriter, r *http.Request)  {
 }
 
 func (c Controller) GetUserList(w http.ResponseWriter, r *http.Request){
-	users, err := c.Store.UserStorage.GetList()
+	users, err := c.Store.User().GetList(models.User{})
 	if err != nil{
 		fmt.Println("Error while getting list: ", err.Error())
 		hanldeResponse(w, http.StatusInternalServerError, err)
@@ -80,18 +78,27 @@ func (c Controller) GetUserList(w http.ResponseWriter, r *http.Request){
 func (c Controller) UpdateUser (w http.ResponseWriter, r *http.Request){
 	user := getUserInfo()
 
-	err := c.Store.UserStorage.Update(user)
+	user,err := c.Store.User().Update(user)
 	if err != nil{
 		fmt.Println("Error while updating user: ", err.Error())
 		hanldeResponse(w, http.StatusInternalServerError, err)
 		return
 	}
-	if user.ID.String() != ""{
+	if user.ID != ""{
 		fmt.Println("Successfully updated!")
 		hanldeResponse(w, http.StatusOK, user)
 	}else{
 		fmt.Println("Successfullu created!")
 		hanldeResponse(w, http.StatusOK, user)
+	}
+}
+
+func (c Controller) DeleteUser(w http.ResponseWriter, r *http.Request){
+	id := "fbd91626-7594-4d33-b4be-6d6bf0c15a98"
+	err := c.Store.User().Delete(id)
+	if err != nil{
+		fmt.Println("Error while deleting user!")
+		return
 	}
 }
 
@@ -139,7 +146,7 @@ func getUserInfo() models.User{
 		}
 		if idStr != ""{
 			return models.User{
-				ID:		   uuid.MustParse(idStr),
+				ID:		   idStr,
 				FirstName: firstName,
 				LastName:  lastName,
 				Email: 	   email,

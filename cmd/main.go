@@ -28,32 +28,4 @@ func main()  {
 
 	fmt.Println("listening at port :8080")
 	http.ListenAndServe(":8080", nil)
-
-	// USERS
-
-	//con.CreateUser()
-	//  con.GetUserByID()
-	//  con.GetUserList()
-	//  con.UpdateUser()
-
-	// PRODUCTS
-
-	//  con.CreateProduct()
-	//  con.GetProductByID()
-	//  con.GetProductList()
-	//  con.UpdateProduct()
-
-	//ORDER PRODUCTS
-
-	// con.CreateOrderProduct()
-	// con.GetOrderProductByID()
-	// con.GetOrderProductList()
-	// con.UpdateOrderProduct()
-
-	//ORDERS
-
-	// con.CreateOrder()
-	// con.GetOrderByID()
-	// con.GetOrderList()
-	// con.UpdateOrder()
 }

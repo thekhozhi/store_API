@@ -3,7 +3,6 @@ package postgres
 import (
 	"database/sql"
 	"develop/models"
-
 	"github.com/google/uuid"
 )
 
@@ -27,7 +26,7 @@ func (u userRepo) Insert(user models.User)  (string, error) {
 	return id.String(), nil
 }
 
-func (u userRepo) GetByID(id uuid.UUID) (models.User, error){
+func (u userRepo) GetByID(id string) (models.User, error){
 user := models.User{}
 
 	err := u.DB.QueryRow(`SELECT id, first_name, last_name, email, phone from users where id = $1`, id).Scan(
@@ -64,6 +63,15 @@ func (u userRepo) GetList() ([]models.User, error) {
 func (u userRepo) Update(user models.User) error {
 	_, err := u.DB.Exec(`UPDATE users set first_name = $1, last_name = $2, email = $3, phone = $4 where id = $5`, 
 	user.FirstName, user.LastName, user.Email, user.Phone, user.ID)
+	if err != nil{
+		return err
+	}
+	return nil
+}
+
+func (u userRepo) Delete(id string)error {
+	id = "f3d55d0c-4213-41a7-a3fa-380b1f53e170"
+	_, err := u.DB.Exec(`DELETE from users where id = $1`, id)
 	if err != nil{
 		return err
 	}
